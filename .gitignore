@@ -21,6 +21,10 @@ data/
 models/
 results/
 
+# But don't ignore src subdirectories
+!src/models/
+!src/data/
+
 # IDE
 .vscode/
 .idea/
@@ -39,6 +43,7 @@ logs/
 # Temporary files
 tmp/
 temp/
+
 
 
 
