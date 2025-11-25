@@ -5,9 +5,10 @@
 
 set -e  # Exit on error
 
-# Get script directory and change to experiments directory
+# Get script directory and change to project root
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd "$SCRIPT_DIR"
+PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
+cd "$PROJECT_ROOT"
 
 echo "========================================"
 echo "🚀 Full Benchmark - BERT vs Small LLMs"
@@ -42,9 +43,9 @@ START_TIME=$(date +%s)
 echo "Start time: $(date)"
 echo ""
 
-# Create experiment log (relative to project root)
-LOG_FILE="../results/benchmark_$(date +%Y%m%d_%H%M%S).log"
-mkdir -p ../results
+# Create experiment log
+LOG_FILE="results/benchmark_$(date +%Y%m%d_%H%M%S).log"
+mkdir -p results
 exec > >(tee -a "$LOG_FILE") 2>&1
 
 echo "Logging to: $LOG_FILE"
@@ -68,7 +69,7 @@ for model in "${BERT_MODELS[@]}"; do
     for task in "${TASKS[@]}"; do
         echo "  → Task: $task"
         
-        uv run python run_bert.py \
+        uv run python experiments/run_bert.py \
             --task "$task" \
             --model "$model" \
             --epochs 3 \
@@ -102,7 +103,7 @@ for model in "${LLM_MODELS[@]}"; do
     for task in "${TASKS[@]}"; do
         echo "  → Task: $task"
         
-        uv run python run_llm.py \
+        uv run python experiments/run_llm.py \
             --task "$task" \
             --mode zero-shot \
             --model "$model" \
@@ -135,7 +136,7 @@ for model in "${LLM_MODELS[@]}"; do
     for task in "${TASKS[@]}"; do
         echo "  → Task: $task"
         
-        uv run python run_llm.py \
+        uv run python experiments/run_llm.py \
             --task "$task" \
             --mode few-shot \
             --num_few_shot 5 \
@@ -175,7 +176,7 @@ for model in "${LORA_MODELS[@]}"; do
     for task in "${TASKS[@]}"; do
         echo "  → Task: $task"
         
-        uv run python run_llm.py \
+        uv run python experiments/run_llm.py \
             --task "$task" \
             --mode lora \
             --model "$model" \
@@ -208,11 +209,11 @@ echo ""
 echo "End time: $(date)"
 echo "Total runtime: ${HOURS}h ${MINUTES}m"
 echo ""
-echo "Results saved to: ../results/"
+echo "Results saved to: results/"
 echo "Log file: $LOG_FILE"
 echo ""
 echo "Next steps:"
-echo "  1. Analyze results: cd .. && uv run python experiments/analyze_results.py"
+echo "  1. Analyze results: uv run python experiments/analyze_results.py"
 echo "  2. Compare models on each task"
 echo "  3. Check error_analysis/ subdirectories for insights"
 echo ""

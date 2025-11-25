@@ -5,9 +5,10 @@
 
 set -e  # Exit on error
 
-# Get script directory and change to experiments directory
+# Get script directory and change to project root
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd "$SCRIPT_DIR"
+PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
+cd "$PROJECT_ROOT"
 
 echo "========================================"
 echo "🧪 Quick Test - Verify Setup"
@@ -38,7 +39,7 @@ echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━�
 for task in "${TASKS[@]}"; do
     echo ""
     echo "→ BERT-base on $task (quick)"
-    uv run python run_bert.py \
+    uv run python experiments/run_bert.py \
         --task "$task" \
         --model bert-base-uncased \
         --epochs 1 \
@@ -56,7 +57,7 @@ echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━�
 for task in "${TASKS[@]}"; do
     echo ""
     echo "→ Qwen 0.5B zero-shot on $task"
-    uv run python run_llm.py \
+    uv run python experiments/run_llm.py \
         --task "$task" \
         --mode zero-shot \
         --model "Qwen/Qwen2-0.5B-Instruct" \
@@ -72,7 +73,7 @@ echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━�
 for task in "${TASKS[@]}"; do
     echo ""
     echo "→ Qwen 0.5B 3-shot on $task"
-    uv run python run_llm.py \
+    uv run python experiments/run_llm.py \
         --task "$task" \
         --mode few-shot \
         --num_few_shot 3 \
@@ -90,7 +91,7 @@ echo "Note: 0.0% accuracy expected with only 100 samples - just testing setup"
 for task in "${TASKS[@]}"; do
     echo ""
     echo "→ Qwen 0.5B LoRA on $task (1 epoch)"
-    uv run python run_llm.py \
+    uv run python experiments/run_llm.py \
         --task "$task" \
         --mode lora \
         --model "Qwen/Qwen2-0.5B-Instruct" \
