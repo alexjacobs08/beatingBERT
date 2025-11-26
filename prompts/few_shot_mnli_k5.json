@@ -1,0 +1,32 @@
+[
+  {
+    "premise": "Before the modern Sevila was built behind its crenellated wall, Celtiberians settled in the area and are credited with having sculpted the crude stone statues of bulls and pigs around the city.",
+    "hypothesis": "Celtiberians settled in the area before the modern Sevilla was built, and they are credited with having sculpted the crude stone statues of pigs and bulls around the city.",
+    "label": 0,
+    "idx": 116359
+  },
+  {
+    "premise": "This report evaluated the resources necessary to comply with the Clear Skies Act for which EPA estimated, by using the IPM, the number, and size of facilities that will have to install new hardware.",
+    "hypothesis": "The Clear Skies Acts requires certain facilities to install new hardware.",
+    "label": 0,
+    "idx": 242783
+  },
+  {
+    "premise": "The highest form is liberation from the nuisance of repeated rebirth in this imperfect world.",
+    "hypothesis": "The highest form is liberation from the nuisance of repeated rebirth in this imperfect world is to finally just die.",
+    "label": 1,
+    "idx": 245636
+  },
+  {
+    "premise": "Quoting a Pat Buchanan adviser's demand that Bush take some positions on abortion, taxes, China, homosexual rights, U.S.",
+    "hypothesis": "Pat Buchanan has several advisers",
+    "label": 1,
+    "idx": 342259
+  },
+  {
+    "premise": "The governor claimed his wife low-balled only because she was embarrassed to confess to him how much she'd blown on clothes and jewelry.",
+    "hypothesis": "The governor had no explanation for his wife's actions.",
+    "label": 2,
+    "idx": 263526
+  }
+]

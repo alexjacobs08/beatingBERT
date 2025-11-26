@@ -1,0 +1,7 @@
+Given two sentences, determine if the second sentence (hypothesis) logically follows from the first sentence (premise).
+
+Sentence 1: {sentence1}
+Sentence 2: {sentence2}
+
+Answer with a single character: 1 for entailment, 0 for not_entailment.
+Answer:

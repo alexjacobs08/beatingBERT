@@ -1,0 +1,32 @@
+[
+  {
+    "sentence1": "Natalya Reshetovskaya, 84, was the first wife of Alexander Solzhenitsyn.",
+    "sentence2": "Alexander Solzhenitsyn's wife's name was Natalya Reshetovskaya.",
+    "label": 0,
+    "idx": 1350
+  },
+  {
+    "sentence1": "President Vladimir Putin vowed Monday to track down the killers of Anna Politkovskaya, while her colleagues at Novaya Gazeta pledged to continue her work despite dangers.",
+    "sentence2": "Anna Politkovskaya was murdered.",
+    "label": 0,
+    "idx": 926
+  },
+  {
+    "sentence1": "John Wilkes Booth assassinated Abraham Lincoln as he sat in the presidential box of Ford's Theater watching the light comedy, \"Our American Cousin.\"",
+    "sentence2": "Lincoln was assassinated in the presidential box of Ford's Theater.",
+    "label": 0,
+    "idx": 1233
+  },
+  {
+    "sentence1": "Beijing's hard-line stance on the Dalai Lama has grown considerably tougher in recent years. Ties with Germany nose-dived after Chancellor Angela Merkel met with the Dalai Lama in September 2007, recovering only after Berlin offered a pledge similar to that made by France on Wednesday. Companies alleged to have supported the exiles' activities have been subjected to smear campaigns and boycott calls in China, and an appearance in mainland China by the British rock group Oasis was axed by Beijing last month because guitarist and chief songwriter Noel Gallagher once took part in a free Tibet concert \u2014 in 1997.",
+    "sentence2": "Angela Merkel is a Buddhist.",
+    "label": 1,
+    "idx": 715
+  },
+  {
+    "sentence1": "In 1962, Armstrong was transferred to astronaut status. He served as command pilot for the Gemini 8 mission, launched March 16, 1966, and along with David Scott, performed the first successful docking of two vehicles in space by mating his Gemini 8 with an uninhabited Agena rocket.",
+    "sentence2": "Neil Armstrong was the first man who landed on the Moon.",
+    "label": 1,
+    "idx": 1051
+  }
+]

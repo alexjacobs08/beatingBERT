@@ -43,6 +43,76 @@ Sentence 2: {sentence2}
 
 Answer with a single character: 1 for equivalent, 0 for not_equivalent.
 Answer:""",
+
+    # Adversarial NLI (same format as MNLI)
+    "anli_r1": """Given a premise and a hypothesis, determine if the hypothesis is entailed by the premise, neutral, or contradicts the premise.
+
+Premise: {premise}
+Hypothesis: {hypothesis}
+
+Answer with just one word: entailment, neutral, or contradiction.
+Relationship:""",
+
+    "anli_r2": """Given a premise and a hypothesis, determine if the hypothesis is entailed by the premise, neutral, or contradicts the premise.
+
+Premise: {premise}
+Hypothesis: {hypothesis}
+
+Answer with just one word: entailment, neutral, or contradiction.
+Relationship:""",
+
+    "anli_r3": """Given a premise and a hypothesis, determine if the hypothesis is entailed by the premise, neutral, or contradicts the premise.
+
+Premise: {premise}
+Hypothesis: {hypothesis}
+
+Answer with just one word: entailment, neutral, or contradiction.
+Relationship:""",
+
+    # HellaSwag - commonsense completion
+    "hellaswag": """Choose the most plausible continuation for the following context.
+
+Context: {ctx}
+
+Options:
+A) {ending0}
+B) {ending1}
+C) {ending2}
+D) {ending3}
+
+Answer with a single letter: A, B, C, or D.
+Answer:""",
+
+    # WinoGrande - pronoun resolution
+    "winogrande": """In the following sentence, determine which option correctly fills in the blank.
+
+Sentence: {sentence}
+
+Option 1: {option1}
+Option 2: {option2}
+
+Answer with a single character: 1 or 2.
+Answer:""",
+
+    # ARC-Challenge - science reasoning
+    "arc_challenge": """Answer the following science question by choosing the correct option.
+
+Question: {question}
+
+{choices_formatted}
+
+Answer with a single letter: A, B, C, or D.
+Answer:""",
+
+    # BoolQ - boolean QA
+    "boolq": """Based on the following passage, answer the question with true or false.
+
+Passage: {passage}
+
+Question: {question}
+
+Answer with a single word: true or false.
+Answer:""",
 }
 
 
@@ -80,6 +150,35 @@ def format_few_shot_example(task: str, example: dict[str, Any]) -> str:
         labels = ["not_equivalent", "equivalent"]
         label = labels[example["label"]]
         return f"Sentence 1: {example['sentence1']}\nSentence 2: {example['sentence2']}\nAnswer: {label}"
+    
+    # ANLI - same as MNLI
+    elif task in ["anli_r1", "anli_r2", "anli_r3"]:
+        labels = ["entailment", "neutral", "contradiction"]
+        label = labels[example["label"]]
+        return f"Premise: {example['premise']}\nHypothesis: {example['hypothesis']}\nRelationship: {label}"
+    
+    # HellaSwag
+    elif task == "hellaswag":
+        endings = example["endings"]
+        label_letter = ["A", "B", "C", "D"][example["label"]]
+        return f"Context: {example['ctx']}\nA) {endings[0]}\nB) {endings[1]}\nC) {endings[2]}\nD) {endings[3]}\nAnswer: {label_letter}"
+    
+    # WinoGrande
+    elif task == "winogrande":
+        label = str(example["label"] + 1)  # 0->1, 1->2
+        return f"Sentence: {example['sentence']}\nOption 1: {example['option1']}\nOption 2: {example['option2']}\nAnswer: {label}"
+    
+    # ARC-Challenge
+    elif task == "arc_challenge":
+        choices = example["choices"]
+        choices_text = "\n".join([f"{choices['label'][i]}) {choices['text'][i]}" for i in range(len(choices['text']))])
+        label_letter = ["A", "B", "C", "D"][example["label"]]
+        return f"Question: {example['question']}\n{choices_text}\nAnswer: {label_letter}"
+    
+    # BoolQ
+    elif task == "boolq":
+        label = "true" if example["label"] == 1 else "false"
+        return f"Passage: {example['passage']}\nQuestion: {example['question']}\nAnswer: {label}"
     
     else:
         raise ValueError(f"Unknown task: {task}")
@@ -120,6 +219,24 @@ def create_few_shot_prompt(
         test_text = f"Question 1: {test_example['question1']}\nQuestion 2: {test_example['question2']}\nAnswer:"
     elif task == "mrpc":
         test_text = f"Sentence 1: {test_example['sentence1']}\nSentence 2: {test_example['sentence2']}\nAnswer:"
+    # ANLI
+    elif task in ["anli_r1", "anli_r2", "anli_r3"]:
+        test_text = f"Premise: {test_example['premise']}\nHypothesis: {test_example['hypothesis']}\nRelationship:"
+    # HellaSwag
+    elif task == "hellaswag":
+        endings = test_example["endings"]
+        test_text = f"Context: {test_example['ctx']}\nA) {endings[0]}\nB) {endings[1]}\nC) {endings[2]}\nD) {endings[3]}\nAnswer:"
+    # WinoGrande
+    elif task == "winogrande":
+        test_text = f"Sentence: {test_example['sentence']}\nOption 1: {test_example['option1']}\nOption 2: {test_example['option2']}\nAnswer:"
+    # ARC-Challenge
+    elif task == "arc_challenge":
+        choices = test_example["choices"]
+        choices_text = "\n".join([f"{choices['label'][i]}) {choices['text'][i]}" for i in range(len(choices['text']))])
+        test_text = f"Question: {test_example['question']}\n{choices_text}\nAnswer:"
+    # BoolQ
+    elif task == "boolq":
+        test_text = f"Passage: {test_example['passage']}\nQuestion: {test_example['question']}\nAnswer:"
     else:
         raise ValueError(f"Unknown task: {task}")
     
@@ -149,7 +266,26 @@ def get_zero_shot_prompt(task: str, example: dict[str, Any]) -> str:
         Formatted prompt
     """
     template = ZERO_SHOT_PROMPTS[task]
-    return template.format(**example)
+    
+    # Special handling for tasks with complex formatting
+    if task == "hellaswag":
+        endings = example["endings"]
+        return template.format(
+            ctx=example["ctx"],
+            ending0=endings[0],
+            ending1=endings[1],
+            ending2=endings[2],
+            ending3=endings[3]
+        )
+    elif task == "arc_challenge":
+        choices = example["choices"]
+        choices_formatted = "\n".join([f"{choices['label'][i]}) {choices['text'][i]}" for i in range(len(choices['text']))])
+        return template.format(
+            question=example["question"],
+            choices_formatted=choices_formatted
+        )
+    else:
+        return template.format(**example)
 
 
 def parse_model_output(output: str, task: str) -> str | None:
@@ -184,7 +320,7 @@ def parse_model_output(output: str, task: str) -> str | None:
         elif "negative" in output:
             return "negative"
     
-    elif task in ["mnli", "mnli_matched", "mnli_mismatched"]:
+    elif task in ["mnli", "mnli_matched", "mnli_mismatched", "anli_r1", "anli_r2", "anli_r3"]:
         if "entailment" in output and "not" not in output.split("entailment")[0]:
             return "entailment"
         elif "neutral" in output:
@@ -228,6 +364,65 @@ def parse_model_output(output: str, task: str) -> str | None:
         elif "equivalent" in output:
             return "equivalent"
     
+    # HellaSwag - A/B/C/D
+    elif task == "hellaswag":
+        if output.startswith('a') or output == 'a':
+            return "ending0"
+        elif output.startswith('b') or output == 'b':
+            return "ending1"
+        elif output.startswith('c') or output == 'c':
+            return "ending2"
+        elif output.startswith('d') or output == 'd':
+            return "ending3"
+        # Fallback to number format
+        elif output.startswith('0') or output == '0':
+            return "ending0"
+        elif output.startswith('1') or output == '1':
+            return "ending1"
+        elif output.startswith('2') or output == '2':
+            return "ending2"
+        elif output.startswith('3') or output == '3':
+            return "ending3"
+    
+    # WinoGrande - 1/2
+    elif task == "winogrande":
+        if output.startswith('1') or output == '1':
+            return "option1"
+        elif output.startswith('2') or output == '2':
+            return "option2"
+    
+    # ARC-Challenge - A/B/C/D
+    elif task == "arc_challenge":
+        if output.startswith('a') or output == 'a':
+            return "A"
+        elif output.startswith('b') or output == 'b':
+            return "B"
+        elif output.startswith('c') or output == 'c':
+            return "C"
+        elif output.startswith('d') or output == 'd':
+            return "D"
+        # Fallback to number format
+        elif output.startswith('1') or output == '1':
+            return "A"
+        elif output.startswith('2') or output == '2':
+            return "B"
+        elif output.startswith('3') or output == '3':
+            return "C"
+        elif output.startswith('4') or output == '4':
+            return "D"
+    
+    # BoolQ - true/false
+    elif task == "boolq":
+        if "true" in output or "yes" in output:
+            return "true"
+        elif "false" in output or "no" in output:
+            return "false"
+        # Fallback to number format
+        elif output.startswith('1') or output == '1':
+            return "true"
+        elif output.startswith('0') or output == '0':
+            return "false"
+    
     return None
 
 
@@ -250,6 +445,14 @@ def label_to_id(label: str, task: str) -> int:
         "rte": {"entailment": 0, "not_entailment": 1},
         "qqp": {"not_duplicate": 0, "duplicate": 1},
         "mrpc": {"not_equivalent": 0, "equivalent": 1},
+        # New reasoning benchmarks
+        "anli_r1": {"entailment": 0, "neutral": 1, "contradiction": 2},
+        "anli_r2": {"entailment": 0, "neutral": 1, "contradiction": 2},
+        "anli_r3": {"entailment": 0, "neutral": 1, "contradiction": 2},
+        "hellaswag": {"ending0": 0, "ending1": 1, "ending2": 2, "ending3": 3},
+        "winogrande": {"option1": 0, "option2": 1},
+        "arc_challenge": {"A": 0, "B": 1, "C": 2, "D": 3},
+        "boolq": {"false": 0, "true": 1},
     }
     
     return label_maps[task][label]
@@ -274,6 +477,14 @@ def id_to_label(label_id: int, task: str) -> str:
         "rte": {0: "entailment", 1: "not_entailment"},
         "qqp": {0: "not_duplicate", 1: "duplicate"},
         "mrpc": {0: "not_equivalent", 1: "equivalent"},
+        # New reasoning benchmarks
+        "anli_r1": {0: "entailment", 1: "neutral", 2: "contradiction"},
+        "anli_r2": {0: "entailment", 1: "neutral", 2: "contradiction"},
+        "anli_r3": {0: "entailment", 1: "neutral", 2: "contradiction"},
+        "hellaswag": {0: "ending0", 1: "ending1", 2: "ending2", 3: "ending3"},
+        "winogrande": {0: "option1", 1: "option2"},
+        "arc_challenge": {0: "A", 1: "B", 2: "C", 3: "D"},
+        "boolq": {0: "false", 1: "true"},
     }
     
     return label_maps[task][label_id]

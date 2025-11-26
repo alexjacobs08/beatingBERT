@@ -39,7 +39,8 @@ def main():
         "--task",
         type=str,
         required=True,
-        choices=["sst2", "mnli", "mnli_matched", "mnli_mismatched", "rte", "qqp", "mrpc"],
+        choices=["sst2", "mnli", "mnli_matched", "mnli_mismatched", "rte", "qqp", "mrpc",
+                 "anli_r1", "anli_r2", "anli_r3", "hellaswag", "winogrande", "arc_challenge", "boolq"],
         help="GLUE task"
     )
     

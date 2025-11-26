@@ -1,0 +1,6 @@
+Classify the sentiment of the following movie review.
+
+Review: {sentence}
+
+Answer with a single character: 1 for positive, 0 for negative.
+Answer:

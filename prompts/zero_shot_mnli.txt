@@ -1,0 +1,7 @@
+Given a premise and a hypothesis, determine if the hypothesis is entailed by the premise, neutral, or contradicts the premise.
+
+Premise: {premise}
+Hypothesis: {hypothesis}
+
+Answer with just one word: entailment, neutral, or contradiction.
+Relationship:

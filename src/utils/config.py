@@ -65,6 +65,56 @@ TASK_CONFIGS = {
         "text_keys": ["sentence1", "sentence2"],
         "metric": "accuracy",
     },
+    # Adversarial / Reasoning benchmarks (LLMs should win)
+    "anli_r1": {
+        "name": "anli_r1",
+        "num_labels": 3,
+        "label_names": ["entailment", "neutral", "contradiction"],
+        "text_keys": ["premise", "hypothesis"],
+        "metric": "accuracy",
+    },
+    "anli_r2": {
+        "name": "anli_r2",
+        "num_labels": 3,
+        "label_names": ["entailment", "neutral", "contradiction"],
+        "text_keys": ["premise", "hypothesis"],
+        "metric": "accuracy",
+    },
+    "anli_r3": {
+        "name": "anli_r3",
+        "num_labels": 3,
+        "label_names": ["entailment", "neutral", "contradiction"],
+        "text_keys": ["premise", "hypothesis"],
+        "metric": "accuracy",
+    },
+    "hellaswag": {
+        "name": "hellaswag",
+        "num_labels": 4,
+        "label_names": ["ending0", "ending1", "ending2", "ending3"],
+        "text_keys": ["ctx", "endings"],  # Special handling needed
+        "metric": "accuracy",
+    },
+    "winogrande": {
+        "name": "winogrande",
+        "num_labels": 2,
+        "label_names": ["option1", "option2"],
+        "text_keys": ["sentence", "option1", "option2"],
+        "metric": "accuracy",
+    },
+    "arc_challenge": {
+        "name": "arc_challenge",
+        "num_labels": 4,
+        "label_names": ["A", "B", "C", "D"],
+        "text_keys": ["question", "choices"],  # Special handling needed
+        "metric": "accuracy",
+    },
+    "boolq": {
+        "name": "boolq",
+        "num_labels": 2,
+        "label_names": ["false", "true"],
+        "text_keys": ["passage", "question"],  # passage first (context), then question
+        "metric": "accuracy",
+    },
 }
 
 

@@ -1,4 +1,4 @@
-"""Dataset loading utilities for GLUE benchmarks."""
+"""Dataset loading utilities for GLUE and reasoning benchmarks."""
 
 from datasets import load_dataset, Dataset, DatasetDict
 from pathlib import Path
@@ -10,6 +10,17 @@ from src.utils.config import DATA_DIR, TASK_CONFIGS
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Non-GLUE datasets that need special loading
+SPECIAL_DATASETS = {
+    "anli_r1": ("anli", None),
+    "anli_r2": ("anli", None),
+    "anli_r3": ("anli", None),
+    "hellaswag": ("Rowan/hellaswag", None),
+    "winogrande": ("allenai/winogrande", "winogrande_xl"),
+    "arc_challenge": ("allenai/ai2_arc", "ARC-Challenge"),
+    "boolq": ("google/boolq", None),
+}
+
 
 def load_glue_dataset(
     task: str,
@@ -17,10 +28,10 @@ def load_glue_dataset(
     max_samples: int | None = None
 ) -> DatasetDict:
     """
-    Load a GLUE dataset from HuggingFace.
+    Load a dataset from HuggingFace (GLUE or reasoning benchmarks).
     
     Args:
-        task: Task name (e.g., 'sst2', 'mnli', 'rte')
+        task: Task name (e.g., 'sst2', 'mnli', 'rte', 'anli_r1', 'hellaswag', etc.)
         cache_dir: Directory to cache datasets (default: DATA_DIR)
         max_samples: Maximum number of samples to load from train split (for testing/debugging)
         
@@ -37,10 +48,13 @@ def load_glue_dataset(
     if task not in TASK_CONFIGS:
         raise ValueError(f"Unknown task: {task}. Available: {list(TASK_CONFIGS.keys())}")
     
-    logger.info(f"Loading GLUE dataset: {task}")
+    logger.info(f"Loading dataset: {task}")
     
+    # Check if this is a special (non-GLUE) dataset
+    if task in SPECIAL_DATASETS:
+        dataset = _load_special_dataset(task, cache_dir)
     # Handle MNLI special cases
-    if task in ["mnli_matched", "mnli_mismatched"]:
+    elif task in ["mnli_matched", "mnli_mismatched"]:
         # Load full MNLI dataset
         dataset = load_dataset("glue", "mnli", cache_dir=str(cache_dir))
         
@@ -57,10 +71,11 @@ def load_glue_dataset(
             del dataset["validation_mismatched"]
     else:
         # Load standard GLUE task
+        logger.info(f"Loading GLUE dataset: {task}")
         dataset = load_dataset("glue", task, cache_dir=str(cache_dir))
     
     # Limit train samples if specified (for sample efficiency experiments)
-    if max_samples is not None and max_samples > 0:
+    if max_samples is not None and max_samples > 0 and "train" in dataset:
         logger.info(f"Limiting train split to {max_samples} samples")
         dataset["train"] = dataset["train"].select(range(min(max_samples, len(dataset["train"]))))
     
@@ -70,6 +85,94 @@ def load_glue_dataset(
         logger.info(f"  {split_name}: {len(split_data)} examples")
     
     return dataset
+
+
+def _load_special_dataset(task: str, cache_dir: Path) -> DatasetDict:
+    """Load non-GLUE datasets with special handling."""
+    
+    dataset_name, subset = SPECIAL_DATASETS[task]
+    
+    # ANLI - Adversarial NLI
+    if task.startswith("anli_"):
+        round_num = task[-1]  # r1, r2, or r3
+        dataset = load_dataset("anli", cache_dir=str(cache_dir))
+        
+        # ANLI has separate splits per round
+        result = DatasetDict({
+            "train": dataset[f"train_r{round_num}"],
+            "validation": dataset[f"dev_r{round_num}"],
+            "test": dataset[f"test_r{round_num}"],
+        })
+        return result
+    
+    # HellaSwag - Commonsense completion
+    elif task == "hellaswag":
+        dataset = load_dataset(dataset_name, cache_dir=str(cache_dir))
+        
+        # HellaSwag has train/validation/test
+        # Test split has empty labels, so we filter those out
+        def process_hellaswag(example):
+            # Handle empty labels (test set)
+            if example["label"] == "" or example["label"] is None:
+                example["label"] = -1  # Mark as unlabeled
+            else:
+                example["label"] = int(example["label"])
+            return example
+        
+        dataset = dataset.map(process_hellaswag)
+        return dataset
+    
+    # WinoGrande - Pronoun resolution
+    elif task == "winogrande":
+        dataset = load_dataset(dataset_name, subset, cache_dir=str(cache_dir))
+        
+        # WinoGrande labels are "1" or "2" as strings, convert to 0/1
+        # Test split has empty labels
+        def process_winogrande(example):
+            if example["answer"] == "" or example["answer"] is None:
+                example["label"] = -1  # Mark as unlabeled
+            else:
+                example["label"] = int(example["answer"]) - 1  # "1"->0, "2"->1
+            return example
+        
+        dataset = dataset.map(process_winogrande)
+        return dataset
+    
+    # ARC-Challenge - Science reasoning
+    elif task == "arc_challenge":
+        dataset = load_dataset(dataset_name, subset, cache_dir=str(cache_dir))
+        
+        # ARC has answerKey as A/B/C/D, convert to 0/1/2/3
+        def process_arc(example):
+            answer_map = {"A": 0, "B": 1, "C": 2, "D": 3, "1": 0, "2": 1, "3": 2, "4": 3}
+            answer = example.get("answerKey", "")
+            if answer == "" or answer is None:
+                example["label"] = -1  # Mark as unlabeled
+            else:
+                example["label"] = answer_map.get(answer, -1)
+            return example
+        
+        dataset = dataset.map(process_arc)
+        return dataset
+    
+    # BoolQ - Boolean QA
+    elif task == "boolq":
+        dataset = load_dataset(dataset_name, cache_dir=str(cache_dir))
+        
+        # BoolQ labels are already boolean, convert to int
+        def process_boolq(example):
+            answer = example.get("answer")
+            if answer is None:
+                example["label"] = -1  # Mark as unlabeled
+            else:
+                example["label"] = int(answer)  # True->1, False->0
+            return example
+        
+        dataset = dataset.map(process_boolq)
+        return dataset
+    
+    else:
+        raise ValueError(f"Unknown special dataset: {task}")
 
 
 def get_few_shot_examples(
