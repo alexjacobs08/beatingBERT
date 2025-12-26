@@ -201,20 +201,24 @@ def get_few_shot_examples(
     
     # Sample examples for each label
     examples = []
-    for label_idx, label in enumerate(sorted(labels)):
+    valid_label_idx = 0  # Separate counter for valid labels only
+    for label in sorted(labels):
         if label == -1:  # Skip unlabeled data
             continue
-        
+
         # Get all examples with this label
-        label_examples = dataset.filter(lambda x: x["label"] == label)
-        
+        label_examples = dataset.filter(lambda x, l=label: x["label"] == l)
+
         # Determine how many to sample for this label
-        n_to_sample = examples_per_label + (1 if label_idx < remainder else 0)
+        # Use valid_label_idx (not enumerate index) for fair remainder distribution
+        n_to_sample = examples_per_label + (1 if valid_label_idx < remainder else 0)
         n_to_sample = min(n_to_sample, len(label_examples))
-        
+
         # Sample examples
         sampled = label_examples.shuffle(seed=seed).select(range(n_to_sample))
         examples.extend(sampled)
+
+        valid_label_idx += 1
     
     return examples
 

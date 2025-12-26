@@ -150,7 +150,7 @@ class GemmaConfig:
     model_name: str = "google/gemma-3-1b-it"
     task: str = "sst2"
     temperature: float = 0.0
-    max_new_tokens: int = 3  # Changed from 10 to 3 for single-token answers
+    max_new_tokens: int = 20  # Increased from 3 to handle multi-token labels like "not_entailment"
     batch_size: int = 8
     use_fp16: bool = True
     
@@ -169,7 +169,7 @@ class GemmaConfig:
     learning_rate: float = 1e-4
     num_epochs: int = 3
     gradient_accumulation_steps: int = 4
-    max_length: int = 256
+    max_length: int = 2048  # Increased from 256 to handle few-shot prompts (~500+ tokens)
     max_samples: int | None = None
     
     def to_dict(self) -> dict[str, Any]:

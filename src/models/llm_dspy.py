@@ -564,14 +564,16 @@ class LLMDSPyBase:
                 else:
                     try:
                         pred_id = label_to_id(pred_label, self.config.task)
-                    except:
+                    except (KeyError, ValueError) as e:
+                        logger.warning(f"Failed to convert label '{pred_label}': {e}")
                         pred_id = 0
-                
+
                 if pred_id is None:
                     pred_id = 0
-                
+
                 predictions.append(pred_id)
-            except:
+            except Exception as e:
+                logger.warning(f"Failed to process prediction: {e}")
                 predictions.append(0)
         
         return predictions, metrics

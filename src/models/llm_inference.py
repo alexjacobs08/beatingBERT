@@ -172,10 +172,11 @@ class LLMInference:
             latency = time.time() - start
             
             if pred_id is None:
-                # Failed to parse - use random/default
+                # Failed to parse - log warning and use default
                 failed_parses += 1
+                logger.warning(f"Failed to parse output: {repr(raw_output[:100])}... Defaulting to label 0")
                 pred_id = 0  # Default to first label
-            
+
             predictions.append(pred_id)
             
             if return_raw:
@@ -197,8 +198,15 @@ class LLMInference:
         metrics["failed_parses"] = failed_parses
         metrics["parse_success_rate"] = 1 - (failed_parses / len(dataset))
         
-        logger.info(f"Failed parses: {failed_parses}/{len(dataset)} ({failed_parses/len(dataset)*100:.1f}%)")
-        
+        parse_failure_rate = failed_parses / len(dataset)
+        logger.info(f"Failed parses: {failed_parses}/{len(dataset)} ({parse_failure_rate*100:.1f}%)")
+
+        # Warn if parse failure rate is high - results may be unreliable
+        if parse_failure_rate > 0.1:
+            logger.warning(f"HIGH PARSE FAILURE RATE: {parse_failure_rate*100:.1f}% - Results may be unreliable!")
+        if parse_failure_rate > 0.3:
+            logger.error(f"CRITICAL: {parse_failure_rate*100:.1f}% parse failures - Results are likely invalid!")
+
         return predictions, metrics, raw_outputs
     
     def predict_batch(

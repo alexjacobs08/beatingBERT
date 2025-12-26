@@ -379,13 +379,15 @@ class LLMLoRATrainer:
             
             # Parse
             parsed_label = parse_model_output(generated_text, self.config.task)
-            
+
             if parsed_label is None:
+                logger.warning(f"Failed to parse output: {repr(generated_text[:100])}... Defaulting to label 0")
                 pred_id = 0  # Default
             else:
                 try:
                     pred_id = label_to_id(parsed_label, self.config.task)
-                except (KeyError, ValueError):
+                except (KeyError, ValueError) as e:
+                    logger.warning(f"Failed to convert label '{parsed_label}': {e}")
                     pred_id = 0
             
             predictions.append(pred_id)

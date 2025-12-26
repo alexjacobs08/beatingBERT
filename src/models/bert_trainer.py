@@ -203,7 +203,13 @@ class BERTTrainer:
             
             total_loss += loss.item()
             progress_bar.set_postfix({"loss": loss.item()})
-        
+
+        # Finalize any remaining gradients from incomplete accumulation
+        if (progress_bar.n + 1) % self.config.gradient_accumulation_steps != 0:
+            optimizer.step()
+            scheduler.step()
+            optimizer.zero_grad()
+
         return total_loss / len(train_loader)
     
     def evaluate(self, dataloader) -> dict[str, Any]:
