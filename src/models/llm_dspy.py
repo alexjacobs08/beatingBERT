@@ -173,7 +173,7 @@ class LLMDSPyBase:
                     max_tokens=200,
                     temperature=config.temperature,
                     port=11434,
-                    cache=False # Enable DSPy caching for speed/reproducibility
+                    cache=False  # Disable caching for fresh results each run
                 )
                 logger.info(f"✓ Connected to Ollama using OllamaLocal")
             except (ImportError, AttributeError) as e:
@@ -185,7 +185,7 @@ class LLMDSPyBase:
                     api_key="",
                     max_tokens=200,
                     temperature=config.temperature,
-                    cache=False  # Enable DSPy caching for speed/reproducibility
+                    cache=False  # Disable caching for fresh results each run
                 )
                 logger.info(f"✓ Connected to Ollama using generic dspy.LM")
         else:
