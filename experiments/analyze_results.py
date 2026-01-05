@@ -3,14 +3,10 @@
 import argparse
 from pathlib import Path
 import json
-import sys
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from typing import Any
-
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.utils.config import RESULTS_DIR
 import logging

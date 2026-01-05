@@ -7,18 +7,20 @@ This project benchmarks small instruction-tuned LLMs (Gemma 2B) against classic 
 ## 📋 Project Overview
 
 - **BERT/DeBERTa**: Fine-tuned encoder models (110M-184M parameters)
-- **Small LLMs**: Instruction-tuned decoder models (Gemma 1B, TinyLlama 1.1B, Qwen 0.5B, etc.) with:
+- **Small LLMs**: Instruction-tuned decoder models (Gemma 2B, Qwen 0.5B/1.5B) with:
   - Zero-shot prompting
-  - Few-shot prompting (k=5, 10)
-  - DSPy prompt optimization
-  - LoRA fine-tuning (r=8, 16, 32)
+  - Few-shot prompting (k=5)
+  - LoRA fine-tuning (experimental, not in main results)
+  - DSPy prompt optimization (experimental, not in main results)
 
-### Tasks
+> **Note**: The [accompanying blog post](https://alex-jacobs.com/posts/beatingbert/) focuses on zero-shot and few-shot results. LoRA and DSPy code is available in the repo but results were inconsistent and not included in the main comparison.
+
+### Tasks (Main Results)
 
 - **SST-2**: Binary sentiment classification
-- **MNLI**: 3-way natural language inference
 - **RTE**: Binary textual entailment
-- **QQP/MRPC**: Paraphrase detection (optional)
+- **BoolQ**: Yes/No question answering
+- **ANLI (R1)**: Adversarial natural language inference
 
 ## 🚀 Quick Start
 

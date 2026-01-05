@@ -3,11 +3,7 @@
 import argparse
 from pathlib import Path
 import json
-import sys
 from datetime import datetime
-
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.models.bert_trainer import BERTTrainer
 from src.data.loader import load_glue_dataset

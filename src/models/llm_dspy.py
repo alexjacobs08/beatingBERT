@@ -422,15 +422,15 @@ class LLMDSPyBase:
         
         return history
     
-    def _evaluate(self, dataset) -> dict[str, Any]:
+    def _evaluate(self, dataset) -> tuple[list[int], dict[str, Any]]:
         """
         Evaluate the compiled classifier.
-        
+
         Args:
             dataset: Dataset to evaluate on
-            
+
         Returns:
-            Evaluation metrics
+            Tuple of (predictions, metrics)
         """
         # Note: We don't start the overall timer here
         # We only time individual predictions for per-sample latency
@@ -521,62 +521,26 @@ class LLMDSPyBase:
         }
         
         logger.info(f"Failed parses: {failed_parses}/{len(dataset)} ({failed_parses/len(dataset)*100:.1f}%)")
-        
-        return metrics
+
+        return predictions, metrics
     
     def predict(self, dataset) -> tuple[list[int], dict[str, Any]]:
         """
         Make predictions using the classifier.
-        
+
         For zero-shot/few-shot: Uses classifier directly
         For dspy mode: Uses optimized compiled_classifier
-        
+
         Args:
             dataset: Dataset to predict on
-            
+
         Returns:
             Tuple of (predictions, metrics)
         """
         if self.mode == "dspy" and not hasattr(self, 'compiled_classifier'):
             raise ValueError("Must call optimize() first before predict() in dspy mode")
-        
-        metrics = self._evaluate(dataset)
-        
-        # Get predictions
-        predictions = []
-        for example in dataset:
-            try:
-                if len(self.text_keys) == 1:
-                    pred = self.compiled_classifier(text=example[self.text_keys[0]])
-                else:
-                    pred = self.compiled_classifier(
-                        text1=example[self.text_keys[0]],
-                        text2=example[self.text_keys[1]]
-                    )
-                
-                pred_label = pred.label.strip().lower()
-                
-                # Parse
-                if pred_label.startswith('1') or pred_label == '1':
-                    pred_id = 1 if self.num_labels == 2 else None
-                elif pred_label.startswith('0') or pred_label == '0':
-                    pred_id = 0
-                else:
-                    try:
-                        pred_id = label_to_id(pred_label, self.config.task)
-                    except (KeyError, ValueError) as e:
-                        logger.warning(f"Failed to convert label '{pred_label}': {e}")
-                        pred_id = 0
 
-                if pred_id is None:
-                    pred_id = 0
-
-                predictions.append(pred_id)
-            except Exception as e:
-                logger.warning(f"Failed to process prediction: {e}")
-                predictions.append(0)
-        
-        return predictions, metrics
+        return self._evaluate(dataset)
     
     def save_classifier(self, path: Path) -> None:
         """
